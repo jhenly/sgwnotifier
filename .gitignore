@@ -1,8 +1,18 @@
+# the bin/ directory
+bin/
+
+# Eclipse files and directories
+.classpath
+.project
+.settings/
+
 # Compiled class file
 *.class
 
-# Log file
+# Log files and zout/ logs
 *.log
+zout/*log*
+zout/*LOG*
 
 # BlueJ files
 *.ctxt
