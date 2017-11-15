@@ -6,6 +6,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.logging.Level;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
 import com.gargoylesoftware.htmlunit.FailingHttpStatusCodeException;
@@ -35,12 +36,16 @@ public class Driver {
 	
 	static {
 		System.setProperty("http.keepAlive", "true");
+		
+		// turn off HtmlUnit's logging
+		java.util.logging.Logger.getLogger("com.gargoylesoftware").setLevel(Level.OFF);
 	}
 	
 	/*
 	 * Private Constants
 	 */
 	private static final String CLASS_NAME = "Driver";
+	private static final String SGW_URL = "https://www.shopgoodwill.com/";
 	private static final String WATCHLIST_URL = "https://www.shopgoodwill.com/MyShopgoodwill/WatchList";
 	private static final String USERNAME = "jhenly";
 	private static final String PASSWORD = "Corbu133";
@@ -231,12 +236,10 @@ public class Driver {
 		
 		// get the title and piece together the URL
 		cur = cells.get(CellType.TITLE);
-		System.out.println("cur: " + cur.getTextContent());
-		System.exit(10000);
-		
-		HtmlAnchor titleAnchor = (HtmlAnchor) cur.getFirstChild();
-		title = titleAnchor.asText().trim();
-		url = WATCHLIST_URL + titleAnchor.getHrefAttribute();
+		HtmlAnchor titleAnchor = (HtmlAnchor) cur.getChildNodes().get(1);
+		title = titleAnchor.getTextContent().trim();
+		// piece together the auctions URL using the titleAnchor's href attribute
+		url = SGW_URL + titleAnchor.getHrefAttribute();
 		
 		// get the current price of the auction
 		cur = cells.get(CellType.CUR_PRICE);
