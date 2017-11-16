@@ -1,11 +1,13 @@
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Locale;
 import java.util.logging.Level;
 
 import com.gargoylesoftware.htmlunit.BrowserVersion;
@@ -45,6 +47,7 @@ public class Driver {
 	 * Private Constants
 	 */
 	private static final String CLASS_NAME = "Driver";
+	private static final int JAVASCRIPT_WAIT_TIME = 1000;
 	private static final String SGW_URL = "https://www.shopgoodwill.com/";
 	private static final String WATCHLIST_URL = "https://www.shopgoodwill.com/MyShopgoodwill/WatchList";
 	private static final String USERNAME = "jhenly";
@@ -76,7 +79,7 @@ public class Driver {
 		
 		log("Redirecting to ShopGoodWill watchlist page.");
 		sgwPage = redirectToWatchlistPage(sgwPage);
-		webClient.waitForBackgroundJavaScript(10000);
+		webClient.waitForBackgroundJavaScript(JAVASCRIPT_WAIT_TIME);
 		
 		log("Parsing the watchlist.");
 		parseWatchListTable(sgwPage);
@@ -226,8 +229,8 @@ public class Driver {
 		double curPrice;
 		double maxBid;
 		int numBids;
-		Date endDate;
-		//SimpleDateFormat sdf = new SimpleDateFormat("MM/dd/YYYY H:mm:ss PM PDT");
+		Date endDate = null;
+		SimpleDateFormat sdf = new SimpleDateFormat("M/d/yyyy h:mm:ss aa zzz", Locale.ENGLISH);
 		String url;
 		
 		// skip the first two <td> tags and get the auction id
@@ -259,14 +262,19 @@ public class Driver {
 		String tmpNumBids = cur.getTextContent().trim();
 		numBids = Integer.parseInt(tmpNumBids.split(" ")[0]);
 		
-		System.out.printf("id: %d\ntitle: %s\ncurPrice: %f.0\nmaxBid: %f.0\nnumBids: %d\nurl: %s\n", id, title, curPrice, maxBid, numBids, url);
-		System.exit(10000);
 
 		// get this auction's ending date and time
 		cur = cells.get(CellType.END_DATE);
 		String tmpEndDate = cur.getTextContent().trim();
 		
+		try {
+			endDate = sdf.parse(tmpEndDate);
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 		
+		System.out.printf("id: %d\ntitle: %s\ncurPrice: %f.0\nmaxBid: %f.0\nnumBids: %d\nendDate: %s\nurl: %s\n", id, title, curPrice, maxBid, numBids, endDate, url);
+		System.exit(10000);
 		
 		
 		return null;
