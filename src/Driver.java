@@ -2,6 +2,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedList;
@@ -48,7 +49,7 @@ public class Driver {
 	 */
 	private static final String CLASS_NAME = "Driver";
 	private static final int JAVASCRIPT_WAIT_TIME = 1000;
-	private static final String SGW_URL = "https://www.shopgoodwill.com/";
+	private static final String SGW_URL = "https://www.shopgoodwill.com";
 	private static final String WATCHLIST_URL = "https://www.shopgoodwill.com/MyShopgoodwill/WatchList";
 	private static final String USERNAME = "jhenly";
 	private static final String PASSWORD = "Corbu133";
@@ -84,7 +85,7 @@ public class Driver {
 		log("Parsing the watchlist.");
 		parseWatchListTable(sgwPage);
 		
-		log(sgwPage.asXml());
+		// log(sgwPage.asXml());
 		
 		log("Closing the WebClient.");
 		webClient.close();
@@ -120,7 +121,7 @@ public class Driver {
 				e.printStackTrace();
 			}
 			
-	        /* Get the form that we are dealing with and within that form, 
+	        /* Get the HTML form that we are dealing with and within that form,
 	         * find the submit button and the field that we want to change.
 	         */
 	        loginForm = (HtmlForm) loginPage.querySelector("form#login-form");
@@ -141,7 +142,7 @@ public class Driver {
 				log(e.getMessage());
 				e.printStackTrace();
 			}
-	        
+			
 	        return watchlistPage;
 	}
 	
@@ -151,6 +152,7 @@ public class Driver {
 	 * @return
 	 */
 	private static HtmlPage redirectToWatchlistPage(HtmlPage sgwPage) {
+		
 		DomNode dropdownMenu = null;
 		HtmlAnchor wlAnchor = null;
 		HtmlPage wlPage = null;
@@ -171,7 +173,7 @@ public class Driver {
 			log(e.getMessage());
 			e.printStackTrace();
 		}
-        
+
         return wlPage;
 	}
 	
@@ -195,7 +197,8 @@ public class Driver {
 		for (HtmlTableRow row : wlBody.getRows()) {
 			List<HtmlTableCell> cells = row.getCells();
 			
-			if(cells.size() != 10) {
+			if(cells.size() < 10) {
+				log("Error: Encountered table row with less than 10 cells.");
 				continue;
 			}
 			
@@ -223,61 +226,63 @@ public class Driver {
 	 * @return
 	 */
 	private static Auction parseWatchListTableRow(List<HtmlTableCell> cells) {
-		HtmlTableCell cur;
-		int id;
-		String title;
-		double curPrice;
-		double maxBid;
-		int numBids;
-		Date endDate = null;
-		SimpleDateFormat sdf = new SimpleDateFormat("M/d/yyyy h:mm:ss aa zzz", Locale.ENGLISH);
-		String url;
+		final String END_DATE_FORMAT = "M/d/yyyy h:mm:ss aa zzz";
+		Auction auction = null;
+		HtmlTableCell cur = null;
 		
 		// skip the first two <td> tags and get the auction id
-		cur = cells.get(CellType.ID);
-		id = Integer.parseInt(cur.getTextContent().trim());
 		
-		// get the title and piece together the URL
+		// Auction ID
+		cur = cells.get(CellType.ID);
+		int id = Integer.parseInt(cur.getTextContent().trim());
+		
+		// Auction TITLE and URL
 		cur = cells.get(CellType.TITLE);
 		HtmlAnchor titleAnchor = (HtmlAnchor) cur.getChildNodes().get(1);
-		title = titleAnchor.getTextContent().trim();
-		// piece together the auctions URL using the titleAnchor's href attribute
-		url = SGW_URL + titleAnchor.getHrefAttribute();
+		String title = titleAnchor.getTextContent().trim();
 		
-		// get the current price of the auction
+		// piece together the auction's URL using the titleAnchor's href attribute
+		String url = SGW_URL + titleAnchor.getHrefAttribute();
+		
+		// Auction CURRENT PRICE
 		cur = cells.get(CellType.CUR_PRICE);
-		curPrice = Double.parseDouble(cur.getTextContent().trim().substring(1));
+		Double curPrice = Double.parseDouble(cur.getTextContent().trim().substring(1));
 		
-		// get the user's max bid on this auction
+		// Auction MAX BID
 		cur = cells.get(CellType.MAX_BID);
+		// remove leading and trailing whitespace from user's max bid 
 		String tmpMaxBid = cur.getTextContent().trim();
-		if("".equals(tmpMaxBid)) {
-			maxBid = 0.0;
-		} else {
-			maxBid = Double.parseDouble(tmpMaxBid.substring(1));
-		}
+		// if no max bid then zero it
+		Double maxBid = ("".equals(tmpMaxBid)) ? 0.0 : Double.parseDouble(tmpMaxBid.substring(1));
 		
-		// get the number of bids on this auction
+		// Auction NUM BIDS
 		cur = cells.get(CellType.NUM_BIDS);
 		String tmpNumBids = cur.getTextContent().trim();
-		numBids = Integer.parseInt(tmpNumBids.split(" ")[0]);
-		
-
-		// get this auction's ending date and time
-		cur = cells.get(CellType.END_DATE);
-		String tmpEndDate = cur.getTextContent().trim();
+		// zero numBids since SGW displays "No bids" instead of 0
+		int numBids = 0;
 		
 		try {
-			endDate = sdf.parse(tmpEndDate);
+			numBids = Integer.parseInt(tmpNumBids.split(" ")[0]);
+		} catch(NumberFormatException nfe) { /* swallow exception */ }
+		
+		// Auction ENDING DATE
+		cur = cells.get(CellType.END_DATE);
+		String tmpEndDate = cur.getTextContent().trim();
+		SimpleDateFormat endDateFormat = new SimpleDateFormat(END_DATE_FORMAT, Locale.ENGLISH);
+		
+		Date endDate = null;
+		try {
+			endDate = endDateFormat.parse(tmpEndDate);
 		} catch (ParseException e) {
-			e.printStackTrace();
+			log(e.getMessage());
+			endDate = Date.from(Instant.EPOCH);
 		}
 		
-		System.out.printf("id: %d\ntitle: %s\ncurPrice: %f.0\nmaxBid: %f.0\nnumBids: %d\nendDate: %s\nurl: %s\n", id, title, curPrice, maxBid, numBids, endDate, url);
-		System.exit(10000);
+		// System.out.printf("id: %d\ntitle: %s\ncurPrice: $%3.2f\nmaxBid: $%3.2f\nnumBids: %3d\nendDate: %s\nurl: %s\n", id, title, curPrice, maxBid, numBids, endDate, url);
 		
+		auction = new Auction(id, title, curPrice, maxBid, numBids, endDate, url);
 		
-		return null;
+		return auction;
 	}
 	
 	/**
