@@ -4,6 +4,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.Locale;
 
 
 public final class Logger {
@@ -13,7 +14,7 @@ public final class Logger {
 	private static final String LOG_FILE_PATH = "./zout/log.txt";
 	private static final File LOG_FILE = new File(LOG_FILE_PATH);
 	private static final Date TIMESTAMP = new Date();
-	private static final SimpleDateFormat SDF = new SimpleDateFormat("MM-dd-YYYY hh:mm:ss");
+	private static final SimpleDateFormat SDF = new SimpleDateFormat("MM-dd-YYYY hh:mm:ss", Locale.ENGLISH);
 	
 	// Private Members
 	private static BufferedWriter logger = null;
@@ -90,6 +91,10 @@ public final class Logger {
 		logger = null;
 	}
 	
+	private static void log(String msg) {
+		log(CLASS_NAME, msg);
+	}
+	
 	/**
 	 * Append a time stamped message to the log.
 	 * 
@@ -101,7 +106,7 @@ public final class Logger {
 			return;
 		}
 		
-		String tag = "[" + SDF.format(TIMESTAMP) + "]  " + classname + " :>\n";
+		String tag = "\n[" + SDF.format(TIMESTAMP) + "]  " + classname + " :>\n";
 /*		
 		if(msg.trim().charAt(msg.length() - 1) != '\n') {
 			msg += "\n";
