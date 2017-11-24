@@ -65,7 +65,7 @@ public class Driver {
 	public static void main(String[] args) {
 		WebClient webClient = null;
 		HtmlPage sgwPage = null;
-		List<Auction> parsedAuctions;
+		List<Auction> parsedAuctions = null;
 		
 		// start log
 		Logger.startLog();
@@ -83,7 +83,7 @@ public class Driver {
 		webClient.waitForBackgroundJavaScript(JAVASCRIPT_WAIT_TIME);
 		
 		log("Parsing the watchlist.");
-		parseWatchListTable(sgwPage);
+		parsedAuctions = parseWatchListTable(sgwPage);
 		
 		// log(sgwPage.asXml());
 		
@@ -152,7 +152,6 @@ public class Driver {
 	 * @return
 	 */
 	private static HtmlPage redirectToWatchlistPage(HtmlPage sgwPage) {
-		
 		DomNode dropdownMenu = null;
 		HtmlAnchor wlAnchor = null;
 		HtmlPage wlPage = null;
