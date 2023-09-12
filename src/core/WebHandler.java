@@ -60,8 +60,8 @@ public final class WebHandler {
 	private static final String SGW_URL = "https://www.shopgoodwill.com";
 	private static final String SGW_SIGNIN_URL = "https://www.shopgoodwill.com/SignIn";
 	private static final String SGW_WATCHLIST_URL = "https://www.shopgoodwill.com/MyShopgoodwill/WatchList";
-	private static final String USERNAME = "jhenly";
-	private static final String PASSWORD = "Corbu133";
+	private static final String USERNAME = "USERNAME";
+	private static final String PASSWORD = "PASSWORD";
 	
 	// Private Members
 	private static HashMap<Integer, Auction> auctions;
