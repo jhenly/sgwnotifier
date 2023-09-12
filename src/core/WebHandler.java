@@ -58,7 +58,7 @@ public final class WebHandler {
 	private static final String CLASS_NAME = "WebHandler";
 	private static final int JAVASCRIPT_WAIT_TIME = 2000;
 	private static final String SGW_URL = "https://www.shopgoodwill.com";
-	private static final String SGW_SIGNIN_URL = "https://www.shopgoodwill.com/SignIn";
+	private static final String SGW_SIGNIN_URL = "https://www.shopgoodwill.com/signin";
 	private static final String SGW_WATCHLIST_URL = "https://shopgoodwill.com/shopgoodwill/inprogress-auctions";
 	private static final String USERNAME = "USERNAME";
 	private static final String PASSWORD = "PASSWORD";
